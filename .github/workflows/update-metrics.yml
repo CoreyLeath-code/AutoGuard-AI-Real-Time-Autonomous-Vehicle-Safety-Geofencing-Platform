@@ -52,9 +52,13 @@ jobs:
           if start_marker not in metrics or end_marker not in metrics:
               raise SystemExit("Generated metrics output is missing required section markers.")
 
-          prefix, remainder = readme.split(start_marker, 1)
-          _, suffix = remainder.split(end_marker, 1)
-          updated = f"{prefix}{metrics}\n{suffix.lstrip()}"
+          start = readme.find(start_marker)
+          end = readme.rfind(end_marker)
+          if end < start:
+              raise SystemExit("README metrics section markers are out of order.")
+
+          suffix = readme[end + len(end_marker):]
+          updated = f"{readme[:start]}{metrics}\n{suffix.lstrip()}"
           readme_path.write_text(updated, encoding="utf-8")
           PY
 
@@ -96,3 +100,18 @@ jobs:
           git commit -m "docs: refresh README performance metrics"
           git pull --rebase origin main
           git push origin HEAD:main
+
+      - name: Add Metrics Summary
+        if: always()
+        run: |
+          {
+            echo "## README metrics"
+            echo
+            echo "- Generated metrics table from tracked repository files."
+            echo "- Validated README markers and markdown diff cleanliness."
+            if git diff --quiet -- README.md; then
+              echo "- README.md is current."
+            else
+              echo "- README.md has pending generated metrics changes."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

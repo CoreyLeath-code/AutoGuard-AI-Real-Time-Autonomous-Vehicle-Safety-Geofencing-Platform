@@ -38,6 +38,8 @@ ENV/
 .coverage
 htmlcov/
 coverage.xml
+output.json
+benchmark-output.json
 
 # Build artefacts
 *.o
