@@ -95,7 +95,7 @@ pytest --cov=.
 | Operational Dimension | Repository System Metric Value |
 | :--- | :--- |
 | **Total Tracked Code Architecture Files** | 86 files |
-| **Total Production Invariant Lines** | 3153 LOC |
+| **Total Production Invariant Lines** | 3145 LOC |
 | **Subsystem Module: `infra` Volume** | 899 LOC |
 | **Subsystem Module: `tests` Volume** | 402 LOC |
 | **Subsystem Module: `services` Volume** | 341 LOC |
