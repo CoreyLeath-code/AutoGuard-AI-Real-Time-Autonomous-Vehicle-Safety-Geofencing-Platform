@@ -1,57 +1,98 @@
-# .github/workflows/update-metrics.yml
 name: Generate README Metrics Table
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-metrics-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   generate-metrics:
-    runs-on: ubuntu-latest
     name: Generate README Metrics Table
-    
-    # Grants explicit write permissions to eliminate remote push rejection errors
-    permissions:
-      contents: write
+    runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
 
-      - name: 🐍 Set Up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: 📦 Install Dependencies
-        run: |
-          pip install -r requirements.txt || true
-
-      - name: 🧠 Run Metrics Script
+      - name: Generate README metrics table
         run: |
           python scripts/generate_metrics_table.py > TEMP_METRICS.md
-          echo "Replacing metrics block..."
-          awk '/## 📊 Performance Metrics/{flag=1; print; next} /### 📈 Summary Stats/{flag=0} !flag' README.md > TEMP_README.md
-          cat TEMP_METRICS.md >> TEMP_README.md
-          mv TEMP_README.md README.md
+          python - <<'PY'
+          from pathlib import Path
 
-      - name: ✅ Commit & Push Updated README
+          readme_path = Path("README.md")
+          metrics_path = Path("TEMP_METRICS.md")
+          readme = readme_path.read_text(encoding="utf-8")
+          metrics = metrics_path.read_text(encoding="utf-8").strip()
+
+          start_marker = "## 📊 Performance Metrics"
+          end_marker = "### 📈 Summary Stats"
+
+          if start_marker not in readme:
+              raise SystemExit(f"README marker not found: {start_marker}")
+          if end_marker not in readme:
+              raise SystemExit(f"README marker not found: {end_marker}")
+          if start_marker not in metrics or end_marker not in metrics:
+              raise SystemExit("Generated metrics output is missing required section markers.")
+
+          prefix, remainder = readme.split(start_marker, 1)
+          _, suffix = remainder.split(end_marker, 1)
+          updated = f"{prefix}{metrics}\n{suffix.lstrip()}"
+          readme_path.write_text(updated, encoding="utf-8")
+          PY
+
+      - name: Validate generated README
+        run: |
+          test -s README.md
+          grep -Fq "## 📊 Performance Metrics" README.md
+          grep -Fq "| Operational Dimension | Repository System Metric Value |" README.md
+          grep -Fq "### 📈 Summary Stats" README.md
+          git diff --check
+
+      - name: Show pull-request metrics diff
+        if: github.event_name == 'pull_request'
+        run: |
+          if git diff --quiet -- README.md; then
+            echo "README metrics are already current." >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## README metrics preview"
+              echo
+              echo '```diff'
+              git diff -- README.md
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Commit updated README on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          
-          # Verify modifications are present before initializing commit sequence
-          if ! git diff --cached --quiet; then
-            git commit -m "🤖 Auto-update README performance metrics"
-            
-            # Sync any parallel agent mutations to prevent push race-conditions
-            git pull --rebase origin main
-            git push
-          else
-            echo "No variations detected; skipping push sequence."
+
+          if git diff --cached --quiet; then
+            echo "README metrics are already current; no commit required."
+            exit 0
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          git commit -m "docs: refresh README performance metrics"
+          git pull --rebase origin main
+          git push origin HEAD:main
