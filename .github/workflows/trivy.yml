@@ -7,14 +7,39 @@ on:
 jobs:
   trivy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Image
-        run: docker build -f services/api/Dockerfile -t autoguard .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          load: true
+          tags: autoguard:scan
+          cache-from: type=gha,scope=autoguard-trivy
+          cache-to: type=gha,mode=max,scope=autoguard-trivy
 
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: autoguard
+          image-ref: autoguard:scan
+          format: table
+          exit-code: '0'
+
+      - name: Add Trivy Summary
+        if: always()
+        run: |
+          {
+            echo "## Trivy scan"
+            echo
+            echo "- Image: autoguard:scan"
+            echo "- Dockerfile: Dockerfile"
+            echo "- Build cache: GitHub Actions cache via Buildx"
+          } >> "$GITHUB_STEP_SUMMARY"

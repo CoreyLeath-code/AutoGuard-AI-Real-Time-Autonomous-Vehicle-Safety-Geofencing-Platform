@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   sbom:
     runs-on: ubuntu-latest
@@ -13,3 +16,13 @@ jobs:
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
+
+      - name: Add SBOM Summary
+        if: always()
+        run: |
+          {
+            echo "## SBOM"
+            echo
+            echo "- Generator: anchore/sbom-action"
+            echo "- Source ref: ${{ github.ref_name }}"
+          } >> "$GITHUB_STEP_SUMMARY"

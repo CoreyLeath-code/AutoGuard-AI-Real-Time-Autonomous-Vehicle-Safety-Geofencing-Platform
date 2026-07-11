@@ -19,14 +19,15 @@ on:
 
 jobs:
   deploy:
-    name: Helm deploy – ${{ inputs.environment }}
+    name: Helm deploy - ${{ inputs.environment }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
@@ -52,3 +53,14 @@ jobs:
             --atomic \
             --timeout 5m \
             --wait
+
+      - name: Add Deploy Summary
+        if: always()
+        run: |
+          {
+            echo "## Deployment"
+            echo
+            echo "- Environment: ${{ inputs.environment }}"
+            echo "- Image tag: ${{ inputs.image_tag }}"
+            echo "- Namespace: autoguard"
+          } >> "$GITHUB_STEP_SUMMARY"

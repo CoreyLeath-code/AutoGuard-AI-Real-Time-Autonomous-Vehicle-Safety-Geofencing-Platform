@@ -6,60 +6,97 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality-gate:
-    name: Code Quality & Security Scans
+    name: Code Quality and Security Scans
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code Repository
-      uses: actions/checkout@v4
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python Environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-ci.txt
 
-    - name: Install Linting & Security Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install black mypy bandit pydantic
+      - name: Install Linting and Security Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ci.txt
+          python -m pip install black mypy bandit
+          python -m pip check
 
-    - name: Run Black Code Formatting Lint Check
-      continue-on-error: true
-      run: black --check .
+      - name: Run Black Code Formatting Lint Check
+        continue-on-error: true
+        run: black --check .
 
-    - name: Run Mypy Static Type Validation Check
-      continue-on-error: true
-      run: mypy --ignore-missing-imports .
+      - name: Run Mypy Static Type Validation Check
+        continue-on-error: true
+        run: mypy --ignore-missing-imports .
 
-    - name: Run Bandit Automated Security Vulnerability Scan
-      continue-on-error: true
-      run: bandit -r . -x ./venv,./.venv
+      - name: Run Bandit Automated Security Vulnerability Scan
+        continue-on-error: true
+        run: bandit -r . -x ./venv,./.venv
+
+      - name: Add Quality Gate Summary
+        if: always()
+        run: |
+          {
+            echo "## Quality gate"
+            echo
+            echo "- Python: 3.11"
+            echo "- Dependency set: requirements-ci.txt"
+            echo "- Checks: black, mypy, bandit"
+            echo "- Advisory checks are allowed to continue so unit tests still report."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   unit-tests:
-    name: Test Suite Execution & Coverage Matrix
+    name: Test Suite Execution and Coverage
     runs-on: ubuntu-latest
     needs: quality-gate
 
     steps:
-    - name: Checkout Code Repository
-      uses: actions/checkout@v4
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python Environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-ci.txt
 
-    - name: Install Application & Testing Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install pytest pytest-cov
+      - name: Install Application and Testing Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ci.txt
+          python -m pip install pytest-cov
+          python -m pip check
 
-    - name: Run Test Suite with Pytest Coverage Tracking
-      continue-on-error: true
-      run: |
-        pytest --cov=. --cov-report=term-missing
+      - name: Run Test Suite with Pytest Coverage Tracking
+        run: |
+          PYTHONPATH=. pytest tests \
+            --ignore=tests/benchmarks \
+            --cov=. \
+            --cov-report=term-missing
+
+      - name: Add Test Summary
+        if: always()
+        run: |
+          {
+            echo "## Unit tests"
+            echo
+            echo "- Python: 3.11"
+            echo "- Benchmark tests: excluded from unit CI and covered by the scheduled benchmark workflow"
+            echo "- Coverage report: term-missing"
+          } >> "$GITHUB_STEP_SUMMARY"

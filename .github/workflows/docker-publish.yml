@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to DockerHub
         uses: docker/login-action@v3
         with:
@@ -21,17 +24,32 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push API image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
-          file: services/api/Dockerfile
+          file: Dockerfile
           push: true
           tags: trojan3877/autoguard-api:${{ github.ref_name }},trojan3877/autoguard-api:latest
+          cache-from: type=gha,scope=autoguard-api
+          cache-to: type=gha,mode=max,scope=autoguard-api
 
       - name: Build and Push Dashboard image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/dashboard/Dockerfile
           push: true
           tags: trojan3877/autoguard-dashboard:${{ github.ref_name }},trojan3877/autoguard-dashboard:latest
+          cache-from: type=gha,scope=autoguard-dashboard
+          cache-to: type=gha,mode=max,scope=autoguard-dashboard
+
+      - name: Add Publish Summary
+        if: always()
+        run: |
+          {
+            echo "## Docker publish"
+            echo
+            echo "- API image: trojan3877/autoguard-api:${{ github.ref_name }}"
+            echo "- Dashboard image: trojan3877/autoguard-dashboard:${{ github.ref_name }}"
+            echo "- Build cache: GitHub Actions cache via Buildx"
+          } >> "$GITHUB_STEP_SUMMARY"

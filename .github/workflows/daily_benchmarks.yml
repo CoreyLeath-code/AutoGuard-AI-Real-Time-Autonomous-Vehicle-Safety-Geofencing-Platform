@@ -2,9 +2,12 @@ name: Daily Performance Benchmarks
 
 on:
   schedule:
-    # Runs at 00:00 UTC every day
     - cron: '0 0 * * *'
-  workflow_dispatch: # Allows manual triggering from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: benchmarks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   benchmark:
@@ -12,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      deployments: write
 
     steps:
       - name: Checkout Code
@@ -20,23 +24,39 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           cache: 'pip'
+          cache-dependency-path: requirements-ci.txt
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest-benchmark
+          python -m pip install -r requirements-ci.txt
+          python -m pip install pytest-benchmark
+          python -m pip check
 
       - name: Run Geofencing Benchmarks
         run: |
+          rm -f output.json
           PYTHONPATH=. pytest tests/benchmarks/test_geofence_benchmark.py \
             --benchmark-only \
             --benchmark-json=output.json
-          test -s output.json
-          python -m json.tool output.json > /dev/null
+
+      - name: Validate Benchmark JSON
+        run: python scripts/validate_benchmark_json.py output.json
+
+      - name: Add Benchmark Summary
+        if: always()
+        run: |
+          {
+            echo "## Benchmark run"
+            echo
+            if [ -s output.json ]; then
+              python scripts/validate_benchmark_json.py output.json --summary
+            else
+              echo "- output.json was not created."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Store Benchmark Result
         uses: benchmark-action/github-action-benchmark@v1
