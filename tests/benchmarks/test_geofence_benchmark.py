@@ -5,7 +5,7 @@ scheduled benchmark workflow produces stable, reproducible pytest-benchmark JSON
 """
 
 from libs.geofence.google_maps_geofence import haversine, is_inside_geofence
-
+from services.api.main import PredictionResponse
 
 VEHICLE_LAT = 37.7749
 VEHICLE_LNG = -122.4194
@@ -39,3 +39,21 @@ def test_geofence_membership_benchmark(benchmark):
     )
 
     assert is_inside is True
+
+
+def test_prediction_response_serialization_benchmark(benchmark):
+    """Track API response serialization overhead for benchmark coverage."""
+
+    payload = benchmark(
+        lambda: PredictionResponse(
+            vehicle_id="VH-BENCH",
+            geofence_valid=True,
+            latency_ms=1.25,
+        ).model_dump()
+    )
+
+    assert payload == {
+        "vehicle_id": "VH-BENCH",
+        "geofence_valid": True,
+        "latency_ms": 1.25,
+    }
