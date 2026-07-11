@@ -88,7 +88,8 @@ jobs:
           PYTHONPATH=. pytest tests \
             --ignore=tests/benchmarks \
             --cov=. \
-            --cov-report=term-missing
+            --cov-report=term-missing \
+            --cov-fail-under=85
 
       - name: Add Test Summary
         if: always()
@@ -98,5 +99,5 @@ jobs:
             echo
             echo "- Python: 3.11"
             echo "- Benchmark tests: excluded from unit CI and covered by the scheduled benchmark workflow"
-            echo "- Coverage report: term-missing"
+            echo "- Coverage report: term-missing with 85% minimum"
           } >> "$GITHUB_STEP_SUMMARY"

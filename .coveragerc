@@ -1,0 +1,25 @@
+[run]
+branch = True
+source = .
+omit =
+    .github/*
+    apps/dashboard/streamlit_app.py
+    apps/dashboard/ws_server.py
+    libs/monitoring/tracing.py
+    libs/perception/*
+    libs/simulation/*
+    libs/streaming/*
+    libs/models/fatigue_cnn.py
+    libs/models/fatigue_lstm.py
+    libs/models/transformer_perception.py
+    libs/pipelines/snowflake_loader.py
+    services/api/grpc_server.py
+    setup.py
+    tests/*
+
+[report]
+show_missing = True
+skip_empty = True
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:

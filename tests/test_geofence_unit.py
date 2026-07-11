@@ -12,23 +12,23 @@ from libs.geofence.google_maps_geofence import (
     expand_geofence,
 )
 
-
 # ---------------------------------------------------------------------------
 # haversine distance
 # ---------------------------------------------------------------------------
+
 
 def test_haversine_same_point_is_zero():
     assert haversine(0.0, 0.0, 0.0, 0.0) == 0.0
 
 
 def test_haversine_known_distance_london_paris():
-    """London → Paris is approximately 340 km."""
+    """London â†’ Paris is approximately 340 km."""
     d = haversine(51.5, -0.12, 48.85, 2.35)
     assert 300_000 < d < 400_000
 
 
 def test_haversine_symmetry():
-    """Distance A→B must equal distance B→A."""
+    """Distance Aâ†’B must equal distance Bâ†’A."""
     d1 = haversine(40.0, -74.0, 51.5, -0.12)
     d2 = haversine(51.5, -0.12, 40.0, -74.0)
     assert math.isclose(d1, d2, rel_tol=1e-9)
@@ -40,7 +40,7 @@ def test_haversine_non_negative():
 
 
 def test_haversine_equator_longitude_diff():
-    """One degree of longitude on the equator ≈ 111 km."""
+    """One degree of longitude on the equator â‰ˆ 111 km."""
     d = haversine(0.0, 0.0, 0.0, 1.0)
     assert 110_000 < d < 113_000
 
@@ -48,6 +48,7 @@ def test_haversine_equator_longitude_diff():
 # ---------------------------------------------------------------------------
 # is_inside_geofence
 # ---------------------------------------------------------------------------
+
 
 def test_inside_at_center():
     """A point at the exact center must be inside any positive radius."""
@@ -61,7 +62,7 @@ def test_outside_far_away():
 
 def test_inside_within_radius():
     """A point 100 m away must be inside a 1 km radius geofence."""
-    # Roughly 0.001 degree latitude ≈ 111 m
+    # Roughly 0.001 degree latitude â‰ˆ 111 m
     assert is_inside_geofence(37.7759, -122.4194, 37.7749, -122.4194, 1_000)
 
 
@@ -82,6 +83,7 @@ def test_boundary_exactly_on_edge():
 # expand_geofence
 # ---------------------------------------------------------------------------
 
+
 def test_expand_geofence_increases_radius():
     """Expanded radius must be strictly greater than the original."""
     r = 10_000
@@ -98,9 +100,11 @@ def test_expand_geofence_positive_result():
 # services/api/geofence: check_geofence falls back gracefully with no API key
 # ---------------------------------------------------------------------------
 
+
 def test_check_geofence_no_key_returns_false(monkeypatch):
     """Without a GOOGLE_API_KEY the check must return False without raising."""
     import services.api.geofence as gf
+
     monkeypatch.setattr(gf, "GOOGLE_API_KEY", "")
     result = gf.check_geofence(40.0, -83.0)
     assert result is False
