@@ -2,71 +2,97 @@ name: Daily Performance Benchmarks
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 concurrency:
-  group: benchmarks-${{ github.workflow }}-${{ github.ref }}
+  group: benchmark-${{ github.ref }}
   cancel-in-progress: false
+
+permissions:
+  contents: write
+  deployments: write
 
 jobs:
   benchmark:
-    name: Run Performance Benchmarks
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      deployments: write
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: pip
           cache-dependency-path: requirements-ci.txt
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-ci.txt
-          python -m pip install pytest-benchmark
-          python -m pip check
+          pip install -r requirements-ci.txt
+          pip install pytest-benchmark
+          pip check
 
-      - name: Run Geofencing Benchmarks
+      - name: Run Benchmarks
         run: |
           rm -f output.json
-          PYTHONPATH=. pytest tests/benchmarks/test_geofence_benchmark.py \
+          PYTHONPATH=. pytest \
+            tests/benchmarks/test_geofence_benchmark.py \
             --benchmark-only \
             --benchmark-json=output.json
 
-      - name: Validate Benchmark JSON
-        run: python scripts/validate_benchmark_json.py output.json
+      - name: Validate Benchmark Output
+        run: |
+          python scripts/validate_benchmark_json.py output.json
 
-      - name: Add Benchmark Summary
+      - name: Benchmark Summary
         if: always()
         run: |
-          {
-            echo "## Benchmark run"
-            echo
-            if [ -s output.json ]; then
-              python scripts/validate_benchmark_json.py output.json --summary
-            else
-              echo "- output.json was not created."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "## Daily Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          python scripts/validate_benchmark_json.py output.json --summary >> $GITHUB_STEP_SUMMARY
 
-      - name: Store Benchmark Result
+      - name: Ensure gh-pages Branch Exists
+        run: |
+          git fetch origin
+
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            echo "gh-pages exists."
+          else
+            echo "Creating gh-pages branch..."
+
+            git checkout --orphan gh-pages
+            git rm -rf .
+            touch .nojekyll
+            git add .nojekyll
+            git -c user.name="github-actions" \
+                -c user.email="github-actions@users.noreply.github.com" \
+                commit -m "Initialize gh-pages"
+
+            git push origin gh-pages
+            git checkout "${GITHUB_REF_NAME}"
+          fi
+
+      - name: Publish Benchmark History
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: AutoGuard Performance Index
-          tool: 'pytest'
-          output-file-path: output.json
-          fail-on-alert: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          gh-pages-branch: gh-pages
+          tool: pytest
+          output-file-path: output.json
           benchmark-data-dir-path: dev/bench
+          gh-pages-branch: gh-pages
           auto-push: true
           summary-always: true
+          comment-on-alert: true
+          fail-on-alert: false
+
+      - name: Upload Benchmark Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: output.json
+          retention-days: 30
