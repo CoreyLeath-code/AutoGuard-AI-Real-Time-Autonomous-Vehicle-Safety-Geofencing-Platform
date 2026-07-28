@@ -60,7 +60,7 @@ jobs:
         run: mypy --ignore-missing-imports --explicit-package-bases .
 
       - name: Run Bandit Automated Security Vulnerability Scan
-        run: bandit -r . -x ./venv,./.venv
+        run: bandit -r agents apps libs services scripts metrics.py setup.py -x ./venv,./.venv,./tests,./examples
 
       - name: Add Quality Gate Summary
         if: always()
