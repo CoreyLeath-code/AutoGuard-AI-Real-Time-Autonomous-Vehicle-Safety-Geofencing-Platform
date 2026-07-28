@@ -17,10 +17,13 @@ jobs:
   quality-gate:
     name: Code Quality and Security Scans
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python Environment
         uses: actions/setup-python@v5
@@ -37,16 +40,27 @@ jobs:
           python -m pip check
 
       - name: Run Black Code Formatting Lint Check
-        continue-on-error: true
-        run: black --check .
+        run: |
+          # The repository has a documented legacy formatting backlog. Keep this
+          # gate fail-closed for every Python file changed by the current PR.
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
+            files=$(git diff --name-only "origin/${GITHUB_BASE_REF}"...HEAD -- '*.py')
+          else
+            files=$(git diff --name-only HEAD^ HEAD -- '*.py')
+          fi
+
+          if [ -z "${files}" ]; then
+            echo "No Python files changed; Black check is not applicable."
+          else
+            printf '%s\n' "${files}" | xargs black --check
+          fi
 
       - name: Run Mypy Static Type Validation Check
-        continue-on-error: true
-        run: mypy --ignore-missing-imports .
+        run: mypy --ignore-missing-imports --explicit-package-bases .
 
       - name: Run Bandit Automated Security Vulnerability Scan
-        continue-on-error: true
-        run: bandit -r . -x ./venv,./.venv
+        run: bandit -ll -r agents apps libs services scripts metrics.py setup.py -x ./venv,./.venv,./tests,./examples
 
       - name: Add Quality Gate Summary
         if: always()
@@ -56,14 +70,16 @@ jobs:
             echo
             echo "- Python: 3.11"
             echo "- Dependency set: requirements-ci.txt"
-            echo "- Checks: black, mypy, bandit"
-            echo "- Advisory checks are allowed to continue so unit tests still report."
+            echo "- Checks: Black (changed Python files), mypy, Bandit (medium/high severity)"
+            echo "- All checks are release-blocking; failures stop the workflow."
+            echo "- Full-repository Black normalization remains tracked in audit issue #14."
           } >> "$GITHUB_STEP_SUMMARY"
 
   unit-tests:
     name: Test Suite Execution and Coverage
     runs-on: ubuntu-latest
     needs: quality-gate
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Code Repository
@@ -89,7 +105,19 @@ jobs:
             --ignore=tests/benchmarks \
             --cov=. \
             --cov-report=term-missing \
+            --cov-report=xml \
+            --junitxml=pytest-results.xml \
             --cov-fail-under=85
+
+      - name: Upload Test Evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoguard-test-evidence
+          path: |
+            coverage.xml
+            pytest-results.xml
+          if-no-files-found: warn
 
       - name: Add Test Summary
         if: always()
@@ -99,5 +127,6 @@ jobs:
             echo
             echo "- Python: 3.11"
             echo "- Benchmark tests: excluded from unit CI and covered by the scheduled benchmark workflow"
-            echo "- Coverage report: term-missing with 85% minimum"
+            echo "- Coverage report: XML artifact with an 85% minimum"
+            echo "- JUnit report: pytest-results.xml artifact"
           } >> "$GITHUB_STEP_SUMMARY"

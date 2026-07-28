@@ -20,7 +20,7 @@ stable-baselines3>=2.3.0
 gymnasium>=0.29.0
 
 # Dashboard
-streamlit>=1.34.0
+streamlit>=1.35.0
 requests>=2.31.0
 
 # Observability
@@ -35,4 +35,3 @@ locust>=2.24.0
 pytest>=8.1.0
 coverage>=7.4.0
 httpx>=0.27.0
-streamlit>=1.35.0

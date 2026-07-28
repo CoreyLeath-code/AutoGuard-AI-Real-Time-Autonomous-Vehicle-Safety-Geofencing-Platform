@@ -13,7 +13,7 @@ class Settings:
 
     # FastAPI — bind to all interfaces by default so the service is reachable
     # inside Docker / Kubernetes pods; override with 127.0.0.1 for localhost-only.
-    api_host: str = os.environ.get("API_HOST", "0.0.0.0")
+    api_host: str = os.environ.get("API_HOST", "0.0.0.0")  # nosec B104
     api_port: int = int(os.environ.get("API_PORT", "8000"))
     log_level: str = os.environ.get("LOG_LEVEL", "INFO").upper()
 
