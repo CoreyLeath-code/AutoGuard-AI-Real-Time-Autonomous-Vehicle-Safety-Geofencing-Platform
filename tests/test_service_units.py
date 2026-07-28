@@ -85,9 +85,8 @@ def test_load_balancer_routes_to_selected_server(monkeypatch):
     monkeypatch.setattr(
         load_balancer.requests,
         "post",
-        lambda server, json, timeout: calls.append(
-            (server, json, timeout)
-        ) or _Response({"ok": True}),
+        lambda server, json, timeout: calls.append((server, json, timeout))
+        or _Response({"ok": True}),
     )
 
     assert load_balancer.route_request(payload) == {"ok": True}
