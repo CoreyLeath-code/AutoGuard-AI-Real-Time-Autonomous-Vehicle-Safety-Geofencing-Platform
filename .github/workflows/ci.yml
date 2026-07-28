@@ -57,7 +57,7 @@ jobs:
           fi
 
       - name: Run Mypy Static Type Validation Check
-        run: mypy --ignore-missing-imports .
+        run: mypy --ignore-missing-imports --explicit-package-bases .
 
       - name: Run Bandit Automated Security Vulnerability Scan
         run: bandit -r . -x ./venv,./.venv
