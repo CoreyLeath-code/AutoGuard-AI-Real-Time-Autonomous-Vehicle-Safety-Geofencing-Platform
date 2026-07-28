@@ -60,7 +60,7 @@ jobs:
         run: mypy --ignore-missing-imports --explicit-package-bases .
 
       - name: Run Bandit Automated Security Vulnerability Scan
-        run: bandit -r agents apps libs services scripts metrics.py setup.py -x ./venv,./.venv,./tests,./examples
+        run: bandit -ll -r agents apps libs services scripts metrics.py setup.py -x ./venv,./.venv,./tests,./examples
 
       - name: Add Quality Gate Summary
         if: always()
@@ -70,7 +70,7 @@ jobs:
             echo
             echo "- Python: 3.11"
             echo "- Dependency set: requirements-ci.txt"
-            echo "- Checks: Black (changed Python files), mypy, bandit"
+            echo "- Checks: Black (changed Python files), mypy, Bandit (medium/high severity)"
             echo "- All checks are release-blocking; failures stop the workflow."
             echo "- Full-repository Black normalization remains tracked in audit issue #14."
           } >> "$GITHUB_STEP_SUMMARY"
