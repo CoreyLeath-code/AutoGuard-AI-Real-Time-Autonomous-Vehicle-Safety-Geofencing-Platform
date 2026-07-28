@@ -85,11 +85,19 @@ def test_load_balancer_routes_to_selected_server(monkeypatch):
     monkeypatch.setattr(
         load_balancer.requests,
         "post",
-        lambda server, json: calls.append((server, json)) or _Response({"ok": True}),
+        lambda server, json, timeout: calls.append(
+            (server, json, timeout)
+        ) or _Response({"ok": True}),
     )
 
     assert load_balancer.route_request(payload) == {"ok": True}
-    assert calls == [(load_balancer.INFERENCE_SERVERS[1], payload)]
+    assert calls == [
+        (
+            load_balancer.INFERENCE_SERVERS[1],
+            payload,
+            load_balancer.REQUEST_TIMEOUT_SECONDS,
+        )
+    ]
 
 
 def test_redis_cache_serializes_keys_and_payloads(monkeypatch):
