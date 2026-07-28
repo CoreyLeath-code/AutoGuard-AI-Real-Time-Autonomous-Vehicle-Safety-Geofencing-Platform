@@ -17,6 +17,7 @@ jobs:
   quality-gate:
     name: Code Quality and Security Scans
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Code Repository
@@ -37,15 +38,12 @@ jobs:
           python -m pip check
 
       - name: Run Black Code Formatting Lint Check
-        continue-on-error: true
         run: black --check .
 
       - name: Run Mypy Static Type Validation Check
-        continue-on-error: true
         run: mypy --ignore-missing-imports .
 
       - name: Run Bandit Automated Security Vulnerability Scan
-        continue-on-error: true
         run: bandit -r . -x ./venv,./.venv
 
       - name: Add Quality Gate Summary
@@ -57,13 +55,14 @@ jobs:
             echo "- Python: 3.11"
             echo "- Dependency set: requirements-ci.txt"
             echo "- Checks: black, mypy, bandit"
-            echo "- Advisory checks are allowed to continue so unit tests still report."
+            echo "- All checks are release-blocking; failures stop the workflow."
           } >> "$GITHUB_STEP_SUMMARY"
 
   unit-tests:
     name: Test Suite Execution and Coverage
     runs-on: ubuntu-latest
     needs: quality-gate
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Code Repository
@@ -89,7 +88,19 @@ jobs:
             --ignore=tests/benchmarks \
             --cov=. \
             --cov-report=term-missing \
+            --cov-report=xml \
+            --junitxml=pytest-results.xml \
             --cov-fail-under=85
+
+      - name: Upload Test Evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoguard-test-evidence
+          path: |
+            coverage.xml
+            pytest-results.xml
+          if-no-files-found: warn
 
       - name: Add Test Summary
         if: always()
@@ -99,5 +110,6 @@ jobs:
             echo
             echo "- Python: 3.11"
             echo "- Benchmark tests: excluded from unit CI and covered by the scheduled benchmark workflow"
-            echo "- Coverage report: term-missing with 85% minimum"
+            echo "- Coverage report: XML artifact with an 85% minimum"
+            echo "- JUnit report: pytest-results.xml artifact"
           } >> "$GITHUB_STEP_SUMMARY"
