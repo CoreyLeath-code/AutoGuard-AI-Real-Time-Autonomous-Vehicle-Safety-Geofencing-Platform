@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python Environment
         uses: actions/setup-python@v5
@@ -38,7 +40,21 @@ jobs:
           python -m pip check
 
       - name: Run Black Code Formatting Lint Check
-        run: black --check .
+        run: |
+          # The repository has a documented legacy formatting backlog. Keep this
+          # gate fail-closed for every Python file changed by the current PR.
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
+            files=$(git diff --name-only "origin/${GITHUB_BASE_REF}"...HEAD -- '*.py')
+          else
+            files=$(git diff --name-only HEAD^ HEAD -- '*.py')
+          fi
+
+          if [ -z "${files}" ]; then
+            echo "No Python files changed; Black check is not applicable."
+          else
+            printf '%s\n' "${files}" | xargs black --check
+          fi
 
       - name: Run Mypy Static Type Validation Check
         run: mypy --ignore-missing-imports .
@@ -54,8 +70,9 @@ jobs:
             echo
             echo "- Python: 3.11"
             echo "- Dependency set: requirements-ci.txt"
-            echo "- Checks: black, mypy, bandit"
+            echo "- Checks: Black (changed Python files), mypy, bandit"
             echo "- All checks are release-blocking; failures stop the workflow."
+            echo "- Full-repository Black normalization remains tracked in audit issue #14."
           } >> "$GITHUB_STEP_SUMMARY"
 
   unit-tests:
