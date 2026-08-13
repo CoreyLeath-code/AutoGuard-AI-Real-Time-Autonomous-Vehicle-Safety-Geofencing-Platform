@@ -21,6 +21,7 @@ from libs.monitoring.prometheus_metrics import (
 
 configure_logging(settings.log_level)
 
+
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """Expose readiness only while this process is accepting application traffic."""
