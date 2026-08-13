@@ -85,3 +85,15 @@ def test_predict_increments_request_counter(api_client):
     api_client.post("/predict", json=payload)
     after = REGISTRY.get_sample_value("api_requests_total") or 0.0
     assert after > before
+
+
+
+def test_readiness_returns_503_while_draining(api_client, monkeypatch):
+    from services.api.main import app
+
+    monkeypatch.setattr(app.state, "accepting_traffic", False)
+    response = api_client.get("/health/ready")
+
+    assert response.status_code == 503
+    assert response.text == "draining"
+    assert response.headers["retry-after"] == "5"
