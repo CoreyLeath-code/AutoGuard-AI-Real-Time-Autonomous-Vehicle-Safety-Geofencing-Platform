@@ -8,6 +8,11 @@ metadata:
     version: "latest"
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: autoguard-api
@@ -20,6 +25,7 @@ spec:
         prometheus.io/port: "8000"
         prometheus.io/path: "/metrics"
     spec:
+      terminationGracePeriodSeconds: 30
       serviceAccountName: autoguard-api
       securityContext:
         runAsNonRoot: true

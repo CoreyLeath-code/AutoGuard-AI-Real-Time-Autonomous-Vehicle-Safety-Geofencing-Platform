@@ -1,5 +1,7 @@
 """FastAPI endpoint tests for services/api/main.py."""
 
+import asyncio
+
 from prometheus_client import REGISTRY
 
 
@@ -85,3 +87,38 @@ def test_predict_increments_request_counter(api_client):
     api_client.post("/predict", json=payload)
     after = REGISTRY.get_sample_value("api_requests_total") or 0.0
     assert after > before
+
+
+def test_readiness_returns_503_while_draining(api_client, monkeypatch):
+    from services.api.main import app
+
+    monkeypatch.setattr(app.state, "accepting_traffic", False)
+    response = api_client.get("/health/ready")
+
+    assert response.status_code == 503
+    assert response.text == "draining"
+    assert response.headers["retry-after"] == "5"
+
+
+def test_liveness_stays_available_while_readiness_is_draining(api_client, monkeypatch):
+    from services.api.main import app
+
+    monkeypatch.setattr(app.state, "accepting_traffic", False)
+    response = api_client.get("/health/live")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "alive"
+
+
+def test_lifespan_marks_application_draining_after_shutdown():
+    from services.api.main import app, lifespan
+
+    async def exercise_lifespan():
+        async with lifespan(app):
+            assert app.state.accepting_traffic is True
+        assert app.state.accepting_traffic is False
+
+    try:
+        asyncio.run(exercise_lifespan())
+    finally:
+        app.state.accepting_traffic = True

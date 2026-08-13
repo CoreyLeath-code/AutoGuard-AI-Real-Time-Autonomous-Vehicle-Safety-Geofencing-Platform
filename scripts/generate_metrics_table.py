@@ -24,7 +24,9 @@ def calculate_project_inventory() -> str:
     components: dict[str, int] = {}
 
     for root, dirs, files in os.walk("."):
-        dirs[:] = [directory for directory in dirs if directory not in IGNORED_DIRECTORIES]
+        dirs[:] = [
+            directory for directory in dirs if directory not in IGNORED_DIRECTORIES
+        ]
 
         for filename in files:
             if not filename.endswith(TARGET_EXTENSIONS):
@@ -46,14 +48,19 @@ def calculate_project_inventory() -> str:
     output = [
         "## Repository inventory\n",
         "\n",
-        "> Generated from selected text files in this checkout. This is an inventory, not a performance, safety, accuracy, or quality metric.\n",
+        (
+            "> Generated from selected text files in this checkout. This is an inventory, "
+            "not a performance, safety, accuracy, or quality metric.\n"
+        ),
         "\n",
         "| Inventory item | Value |\n",
         "| :--- | ---: |\n",
         f"| Selected text files | {total_files} |\n",
         f"| Lines in selected text files | {total_lines} |\n",
     ]
-    for component, line_count in sorted(components.items(), key=lambda item: item[1], reverse=True)[:5]:
+    for component, line_count in sorted(
+        components.items(), key=lambda item: item[1], reverse=True
+    )[:5]:
         output.append(f"| `{component}` selected-file lines | {line_count} |\n")
     return "".join(output)
 

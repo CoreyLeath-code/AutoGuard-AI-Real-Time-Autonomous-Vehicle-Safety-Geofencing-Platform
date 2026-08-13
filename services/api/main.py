@@ -1,5 +1,6 @@
 import asyncio
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
@@ -20,11 +21,25 @@ from libs.monitoring.prometheus_metrics import (
 
 configure_logging(settings.log_level)
 
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """Expose readiness only while this process is accepting application traffic."""
+    application.state.accepting_traffic = True
+    try:
+        yield
+    finally:
+        application.state.accepting_traffic = False
+
+
 app = FastAPI(
     title="AutoGuard AI",
-    description="Real-Time Autonomous Vehicle Safety & Geofencing Platform",
+    description="Geofence prototype and telemetry API",
     version="0.1.0",
+    lifespan=lifespan,
 )
+# Keep import-time and test-client behavior deterministic when lifespan is not entered.
+app.state.accepting_traffic = True
 
 # Register middleware (outermost first)
 app.add_middleware(GlobalExceptionMiddleware)
@@ -36,6 +51,7 @@ _START_TIME = time.time()
 # ---------------------------------------------------------------------------
 # Request / response schemas
 # ---------------------------------------------------------------------------
+
 
 class TelemetryRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90, description="Vehicle latitude")
@@ -59,6 +75,7 @@ class HealthResponse(BaseModel):
 # Health endpoints (used by Kubernetes liveness / readiness / startup probes)
 # ---------------------------------------------------------------------------
 
+
 @app.get("/health", response_model=HealthResponse, tags=["health"])
 @app.get("/health/live", response_model=HealthResponse, tags=["health"])
 async def liveness():
@@ -71,7 +88,13 @@ async def liveness():
 
 @app.get("/health/ready", response_model=HealthResponse, tags=["health"])
 async def readiness():
-    """Kubernetes readiness probe – confirms the service can handle traffic."""
+    """Report whether this process should receive application traffic."""
+    if not app.state.accepting_traffic:
+        return PlainTextResponse(
+            "draining",
+            status_code=503,
+            headers={"Retry-After": "5"},
+        )
     return HealthResponse(
         status="ready",
         uptime_seconds=round(time.time() - _START_TIME, 2),
@@ -81,6 +104,7 @@ async def readiness():
 # ---------------------------------------------------------------------------
 # Prometheus metrics scrape endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.get("/metrics", response_class=PlainTextResponse, tags=["observability"])
 async def metrics():
@@ -95,6 +119,7 @@ async def metrics():
 # Inference endpoint
 # ---------------------------------------------------------------------------
 
+
 @app.post("/predict", response_model=PredictionResponse, tags=["inference"])
 async def predict(body: TelemetryRequest):
     """Validate vehicle telemetry against the active geofence and run inference.
@@ -107,7 +132,9 @@ async def predict(body: TelemetryRequest):
     try:
         geofence_valid = await asyncio.to_thread(check_geofence, body.lat, body.lon)
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Geofence check failed: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=f"Geofence check failed: {exc}"
+        ) from exc
     latency_s = time.perf_counter() - start_time
     INFERENCE_LATENCY.observe(latency_s)
     latency_ms = round(latency_s * 1000, 3)
