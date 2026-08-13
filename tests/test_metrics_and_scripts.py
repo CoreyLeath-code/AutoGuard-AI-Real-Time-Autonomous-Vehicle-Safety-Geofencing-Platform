@@ -52,13 +52,14 @@ def test_generate_dataset_writes_expected_columns(tmp_path, monkeypatch):
     assert len(frame) == 5
 
 
-def test_generate_metrics_table_outputs_required_markers(capsys):
-    generate_metrics_table.calculate_project_metrics()
+def test_generate_inventory_table_outputs_descriptive_markers(capsys):
+    print(generate_metrics_table.calculate_project_inventory())
     output = capsys.readouterr().out
 
-    assert "## 📊 Performance Metrics" in output
-    assert "| Operational Dimension | Repository System Metric Value |" in output
-    assert "### 📈 Summary Stats" in output
+    assert "## Repository inventory" in output
+    assert "| Inventory item | Value |" in output
+    assert "Selected text files" in output
+    assert "performance, safety, accuracy, or quality metric" in output
 
 
 def test_validate_benchmark_json_accepts_pytest_benchmark_shape(tmp_path):
