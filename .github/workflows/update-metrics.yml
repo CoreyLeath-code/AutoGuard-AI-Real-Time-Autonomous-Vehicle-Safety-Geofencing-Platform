@@ -1,4 +1,4 @@
-name: Generate README Metrics Table
+name: Generate Repository Inventory Summary
 
 on:
   push:
@@ -8,110 +8,43 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: readme-metrics-${{ github.workflow }}-${{ github.ref }}
+  group: repository-inventory-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  generate-metrics:
-    name: Generate README Metrics Table
+  repository-inventory:
+    name: Generate Repository Inventory Summary
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Generate README metrics table
+      - name: Generate inventory summary
+        run: python scripts/generate_metrics_table.py > repository-inventory.md
+
+      - name: Validate generated inventory
         run: |
-          python scripts/generate_metrics_table.py > TEMP_METRICS.md
-          python - <<'PY'
-          from pathlib import Path
-
-          readme_path = Path("README.md")
-          metrics_path = Path("TEMP_METRICS.md")
-          readme = readme_path.read_text(encoding="utf-8")
-          metrics = metrics_path.read_text(encoding="utf-8").strip()
-
-          start_marker = "## 📊 Performance Metrics"
-          end_marker = "### 📈 Summary Stats"
-
-          if start_marker not in readme:
-              raise SystemExit(f"README marker not found: {start_marker}")
-          if end_marker not in readme:
-              raise SystemExit(f"README marker not found: {end_marker}")
-          if start_marker not in metrics or end_marker not in metrics:
-              raise SystemExit("Generated metrics output is missing required section markers.")
-
-          start = readme.find(start_marker)
-          end = readme.rfind(end_marker)
-          if end < start:
-              raise SystemExit("README metrics section markers are out of order.")
-
-          suffix = readme[end + len(end_marker):]
-          updated = f"{readme[:start]}{metrics}\n{suffix.lstrip()}"
-          readme_path.write_text(updated, encoding="utf-8")
-          PY
-
-      - name: Validate generated README
-        run: |
-          test -s README.md
-          grep -Fq "## 📊 Performance Metrics" README.md
-          grep -Fq "| Operational Dimension | Repository System Metric Value |" README.md
-          grep -Fq "### 📈 Summary Stats" README.md
+          test -s repository-inventory.md
+          grep -Fq "## Repository inventory" repository-inventory.md
+          grep -Fq "not a performance, safety, accuracy, or quality metric" repository-inventory.md
           git diff --check
 
-      - name: Show pull-request metrics diff
-        if: github.event_name == 'pull_request'
-        run: |
-          if git diff --quiet -- README.md; then
-            echo "README metrics are already current." >> "$GITHUB_STEP_SUMMARY"
-          else
-            {
-              echo "## README metrics preview"
-              echo
-              echo '```diff'
-              git diff -- README.md
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: Publish workflow summary
+        run: cat repository-inventory.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit updated README on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md
-
-          if git diff --cached --quiet; then
-            echo "README metrics are already current; no commit required."
-            exit 0
-          fi
-
-          git commit -m "docs: refresh README performance metrics"
-          git pull --rebase origin main
-          git push origin HEAD:main
-
-      - name: Add Metrics Summary
-        if: always()
-        run: |
-          {
-            echo "## README metrics"
-            echo
-            echo "- Generated metrics table from tracked repository files."
-            echo "- Validated README markers and markdown diff cleanliness."
-            if git diff --quiet -- README.md; then
-              echo "- README.md is current."
-            else
-              echo "- README.md has pending generated metrics changes."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload inventory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-inventory-${{ github.sha }}
+          path: repository-inventory.md
+          if-no-files-found: error
+          retention-days: 30
