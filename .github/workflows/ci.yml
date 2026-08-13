@@ -53,7 +53,7 @@ jobs:
           if [ -z "${files}" ]; then
             echo "No Python files changed; Black check is not applicable."
           else
-            printf '%s\n' "${files}" | xargs black --check
+            printf '%s\n' "${files}" | xargs black --check --diff
           fi
 
       - name: Run Mypy Static Type Validation Check
