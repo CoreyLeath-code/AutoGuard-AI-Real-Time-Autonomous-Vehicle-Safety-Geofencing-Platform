@@ -100,6 +100,15 @@ def test_readiness_returns_503_while_draining(api_client, monkeypatch):
     assert response.headers["retry-after"] == "5"
 
 
+def test_liveness_stays_available_while_readiness_is_draining(api_client, monkeypatch):
+    from services.api.main import app
+
+    monkeypatch.setattr(app.state, "accepting_traffic", False)
+    response = api_client.get("/health/live")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "alive"
+
 
 def test_lifespan_marks_application_draining_after_shutdown():
     from services.api.main import app, lifespan
