@@ -52,6 +52,7 @@ _START_TIME = time.time()
 # Request / response schemas
 # ---------------------------------------------------------------------------
 
+
 class TelemetryRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90, description="Vehicle latitude")
     lon: float = Field(..., ge=-180, le=180, description="Vehicle longitude")
@@ -73,6 +74,7 @@ class HealthResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Health endpoints (used by Kubernetes liveness / readiness / startup probes)
 # ---------------------------------------------------------------------------
+
 
 @app.get("/health", response_model=HealthResponse, tags=["health"])
 @app.get("/health/live", response_model=HealthResponse, tags=["health"])
@@ -103,6 +105,7 @@ async def readiness():
 # Prometheus metrics scrape endpoint
 # ---------------------------------------------------------------------------
 
+
 @app.get("/metrics", response_class=PlainTextResponse, tags=["observability"])
 async def metrics():
     """Expose Prometheus metrics for scraping by a Prometheus server."""
@@ -115,6 +118,7 @@ async def metrics():
 # ---------------------------------------------------------------------------
 # Inference endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.post("/predict", response_model=PredictionResponse, tags=["inference"])
 async def predict(body: TelemetryRequest):
