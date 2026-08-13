@@ -1,11 +1,12 @@
 # AutoGuard-AI — Geofence Prototype and Telemetry API
 
 [![CI](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/codeql.yml)
-[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg)](https://www.python.org/)
-[![Geometry method](https://img.shields.io/badge/geofence-Haversine_radius_predicate-6f42c1)](libs/geofence/google_maps_geofence.py)
-[![Scope](https://img.shields.io/badge/scope-prototype_%2F_simulation_only-6b7280)](#safety-boundary)
-[![License](https://img.shields.io/badge/license-see_repository-2ea44f)](LICENSE)
+[![SBOM](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/sbom.yml/badge.svg)](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/sbom.yml)
+[![Trivy security scan](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/trivy.yml/badge.svg)](https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/actions/workflows/trivy.yml)
+[![Python CI](https://img.shields.io/badge/Python_CI-3.11-3776AB)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f)](LICENSE)
+[![Geofence method](https://img.shields.io/badge/geofence-Haversine_radius_predicate-6f42c1)](libs/geofence/google_maps_geofence.py)
+[![Scope: prototype](https://img.shields.io/badge/scope-prototype_%2F_simulation_only-6b7280)](#safety-boundary)
 
 ## Safety boundary
 
