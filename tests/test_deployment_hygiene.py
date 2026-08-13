@@ -20,6 +20,8 @@ def test_raw_kubernetes_manifest_has_safe_http_rollout_contract():
     assert "terminationGracePeriodSeconds: 30" in deployment
     assert "path: /health/live" in deployment
     assert "path: /health/ready" in deployment
+    assert "initialDelaySeconds: 5" in deployment
+    assert "failureThreshold: 3" in deployment
     assert "startupProbe:" in deployment
 
 
