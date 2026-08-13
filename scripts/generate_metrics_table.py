@@ -1,64 +1,62 @@
-# scripts/generate_metrics_table.py
+"""Generate a descriptive repository-inventory table for workflow summaries.
+
+This script intentionally does not measure performance, safety, accuracy, or
+production readiness. It only counts selected tracked text-file contents in the
+current checkout.
+"""
+
+from __future__ import annotations
+
 import os
 import sys
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+TARGET_EXTENSIONS = (".py", ".json", ".yaml", ".yml", ".md")
+IGNORED_DIRECTORIES = {".git", ".github", "__pycache__", "venv", ".venv"}
 
-def calculate_project_metrics():
-    # Targeted extensions for a multi-agent system layout
-    target_extensions = (".py", ".json", ".yaml", ".yml", ".md")
+
+def calculate_project_inventory() -> str:
+    """Return Markdown inventory derived from selected repository files."""
     total_files = 0
     total_lines = 0
-    components = {}
+    components: dict[str, int] = {}
 
     for root, dirs, files in os.walk("."):
-        # Ignore dependency environments and git history folders
-        if any(
-            ignored in root for ignored in ["venv", ".git", "__pycache__", ".github"]
-        ):
-            continue
+        dirs[:] = [directory for directory in dirs if directory not in IGNORED_DIRECTORIES]
 
-        for file in files:
-            if file.endswith(target_extensions):
-                filepath = os.path.join(root, file)
-                total_files += 1
-                try:
-                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                        lines = len(f.readlines())
-                        total_lines += lines
+        for filename in files:
+            if not filename.endswith(TARGET_EXTENSIONS):
+                continue
 
-                    # Categorize structural components by parent folder name
-                    folder = (
-                        root.split(os.sep)[1] if len(root.split(os.sep)) > 1 else "Root"
-                    )
-                    components[folder] = components.get(folder, 0) + lines
-                except Exception:
-                    continue
+            path = os.path.join(root, filename)
+            try:
+                with open(path, encoding="utf-8", errors="ignore") as handle:
+                    line_count = sum(1 for _ in handle)
+            except OSError:
+                continue
 
-    # Build the markdown string structure for the README workflow.
-    markdown_output = [
-        "## 📊 Performance Metrics\n",
-        "| Operational Dimension | Repository System Metric Value |\n",
-        "| :--- | :--- |\n",
-        f"| **Total Tracked Code Architecture Files** | {total_files} files |\n",
-        f"| **Total Production Invariant Lines** | {total_lines} LOC |\n",
+            total_files += 1
+            total_lines += line_count
+            relative_parts = os.path.relpath(root, ".").split(os.sep)
+            component = relative_parts[0] if relative_parts[0] != "." else "root"
+            components[component] = components.get(component, 0) + line_count
+
+    output = [
+        "## Repository inventory\n",
+        "\n",
+        "> Generated from selected text files in this checkout. This is an inventory, not a performance, safety, accuracy, or quality metric.\n",
+        "\n",
+        "| Inventory item | Value |\n",
+        "| :--- | ---: |\n",
+        f"| Selected text files | {total_files} |\n",
+        f"| Lines in selected text files | {total_lines} |\n",
     ]
-
-    for component, loc in sorted(components.items(), key=lambda x: x[1], reverse=True)[
-        :5
-    ]:
-        if component != "Root":
-            markdown_output.append(
-                f"| **Subsystem Module: `{component}` Volume** | {loc} LOC |\n"
-            )
-
-    markdown_output.append("\n### 📈 Summary Stats")
-
-    # Print exactly to stdout so the workflow can redirect it to TEMP_METRICS.md
-    print("".join(markdown_output))
+    for component, line_count in sorted(components.items(), key=lambda item: item[1], reverse=True)[:5]:
+        output.append(f"| `{component}` selected-file lines | {line_count} |\n")
+    return "".join(output)
 
 
 if __name__ == "__main__":
-    calculate_project_metrics()
+    print(calculate_project_inventory())
