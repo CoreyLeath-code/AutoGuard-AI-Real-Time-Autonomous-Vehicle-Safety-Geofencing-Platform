@@ -36,7 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements-ci.txt
-          python -m pip install black mypy bandit
+          python -m pip install black mypy bandit pip-audit
           python -m pip check
 
       - name: Run Black Code Formatting Lint Check
@@ -61,6 +61,9 @@ jobs:
 
       - name: Run Bandit Automated Security Vulnerability Scan
         run: bandit -ll -r agents apps libs services scripts metrics.py setup.py -x ./venv,./.venv,./tests,./examples
+
+      - name: Audit CI dependencies
+        run: python -m pip_audit -r requirements-ci.txt
 
       - name: Add Quality Gate Summary
         if: always()
