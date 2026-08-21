@@ -1,5 +1,5 @@
 # ── Stage 1: dependency builder ───────────────────────────────────────────────
-FROM python:3.10-slim AS builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
@@ -12,7 +12,7 @@ COPY requirements-ci.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements-ci.txt
 
 # ── Stage 2: runtime image ────────────────────────────────────────────────────
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 

@@ -14,6 +14,7 @@ dist/
 
 # Virtual environments
 .venv/
+.release-venv/
 venv/
 env/
 ENV/
@@ -35,9 +36,12 @@ ENV/
 
 # Test / coverage artefacts
 .pytest_cache/
+.pytest-tmp/
+.pip-audit-cache/
 .coverage
 htmlcov/
 coverage.xml
+pytest-results*.xml
 output.json
 benchmark-output.json
 

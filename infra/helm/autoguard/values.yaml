@@ -12,9 +12,9 @@ deployment:
       maxSurge: 1
 
 image:
-  repository: trojan3877/autoguard-ai
+  repository: ghcr.io/coreyleath-code/autoguard-api
   pullPolicy: IfNotPresent
-  tag: ""  # Overridden by CI with the Git tag
+  tag: "v0.1.0"  # Replace with an immutable release tag for each environment.
 
 serviceAccount:
   create: true

@@ -5,7 +5,7 @@ metadata:
   namespace: autoguard
   labels:
     app: autoguard-api
-    version: "latest"
+    version: "v0.1.0"
 spec:
   replicas: 2
   strategy:
@@ -33,7 +33,7 @@ spec:
         fsGroup: 2000
       containers:
         - name: api
-          image: trojan3877/autoguard-ai:latest  # TODO: replace with a specific tag (e.g. v0.1.0) before deploying to production
+          image: ghcr.io/coreyleath-code/autoguard-api:v0.1.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

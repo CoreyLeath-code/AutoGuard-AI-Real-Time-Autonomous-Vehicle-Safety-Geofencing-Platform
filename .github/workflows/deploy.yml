@@ -13,9 +13,8 @@ on:
           - staging
           - prod
       image_tag:
-        description: "Docker image tag to deploy (defaults to latest)"
-        required: false
-        default: "latest"
+        description: "Immutable GitHub Container Registry image tag to deploy"
+        required: true
 
 jobs:
   deploy:
