@@ -2,7 +2,7 @@ name: Publish Docker Image
 
 env:
   REGISTRY: ghcr.io
-  OWNER: ${{ github.repository_owner }}
+  OWNER: coreyleath-code
 
 on:
   push:
