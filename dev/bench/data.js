@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787361922376,
+  "lastUpdate": 1787449154450,
   "repoUrl": "https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform",
   "entries": {
     "Benchmark": [
@@ -1720,6 +1720,49 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 5.928439183321477e-7",
             "extra": "mean: 2.449251222670971 usec\nrounds: 28421"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Corey Leath",
+            "username": "CoreyLeath-code",
+            "email": "corey22blue@hotmail.com"
+          },
+          "committer": {
+            "name": "Corey Leath",
+            "username": "CoreyLeath-code",
+            "email": "corey22blue@hotmail.com"
+          },
+          "id": "ba59b89eebcc9a08671f23a4d112c72a4a8c4ff7",
+          "message": "fix: lowercase GHCR owner for Docker publishing",
+          "timestamp": "2026-08-21T19:11:47Z",
+          "url": "https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/commit/ba59b89eebcc9a08671f23a4d112c72a4a8c4ff7"
+        },
+        "date": 1787449153839,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_haversine_distance_benchmark",
+            "value": 1259302.1877124752,
+            "unit": "iter/sec",
+            "range": "stddev: 2.997997431673957e-7",
+            "extra": "mean: 794.0905763187006 nsec\nrounds: 68881"
+          },
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_geofence_membership_benchmark",
+            "value": 1158197.6413611472,
+            "unit": "iter/sec",
+            "range": "stddev: 3.507409572465802e-7",
+            "extra": "mean: 863.4104960054756 nsec\nrounds: 177305"
+          },
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_prediction_response_serialization_benchmark",
+            "value": 416022.58017646096,
+            "unit": "iter/sec",
+            "range": "stddev: 5.885127480832044e-7",
+            "extra": "mean: 2.403715681912838 usec\nrounds: 26400"
           }
         ]
       }
