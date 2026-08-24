@@ -6,7 +6,7 @@ Thank you for your interest in contributing! Please follow the guidelines below.
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/Trojan3877/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform.git
+git clone https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform.git
 cd AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform
 
 # 2. Create a virtual environment
