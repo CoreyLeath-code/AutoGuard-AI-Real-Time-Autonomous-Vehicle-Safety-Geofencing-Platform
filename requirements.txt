@@ -29,7 +29,7 @@ opentelemetry-api>=1.24.0
 opentelemetry-sdk>=1.24.0
 
 # Load testing (test only)
-locust>=2.24.0
+locust>=2.47.0
 
 # Testing
 pytest>=8.1.0
