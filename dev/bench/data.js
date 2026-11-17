@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794807605396,
+  "lastUpdate": 1794899806623,
   "repoUrl": "https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform",
   "entries": {
     "Benchmark": [
@@ -5246,6 +5246,49 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 4.7194190989601873e-7",
             "extra": "mean: 2.228864085446795 usec\nrounds: 19939"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Corey Leath",
+            "username": "CoreyLeath-code",
+            "email": "corey22blue@hotmail.com"
+          },
+          "committer": {
+            "name": "Corey Leath",
+            "username": "CoreyLeath-code",
+            "email": "corey22blue@hotmail.com"
+          },
+          "id": "4b3b785bd5aba73e6fea65d5e79054a2845e1d71",
+          "message": "fix(test): make readiness-state setup resilient to lifecycle reset",
+          "timestamp": "2026-11-11T18:40:26Z",
+          "url": "https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/commit/4b3b785bd5aba73e6fea65d5e79054a2845e1d71"
+        },
+        "date": 1794899806176,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_haversine_distance_benchmark",
+            "value": 1657869.0739590651,
+            "unit": "iter/sec",
+            "range": "stddev: 2.066128528020167e-7",
+            "extra": "mean: 603.183939979021 nsec\nrounds: 56127"
+          },
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_geofence_membership_benchmark",
+            "value": 1826577.7442915617,
+            "unit": "iter/sec",
+            "range": "stddev: 5.529560655160933e-8",
+            "extra": "mean: 547.4719064794003 nsec\nrounds: 85267"
+          },
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_prediction_response_serialization_benchmark",
+            "value": 584074.7000056766,
+            "unit": "iter/sec",
+            "range": "stddev: 3.3627315524909464e-7",
+            "extra": "mean: 1.7121097695042793 usec\nrounds: 25590"
           }
         ]
       }
