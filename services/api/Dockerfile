@@ -1,5 +1,5 @@
 # ── Stage 1: dependency builder ───────────────────────────────────────────────
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS builder
+FROM nvidia/cuda:13.5.0-runtime-ubuntu22.04 AS builder
 
 WORKDIR /build
 RUN apt-get update && \
@@ -10,7 +10,7 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ── Stage 2: runtime image ────────────────────────────────────────────────────
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+FROM nvidia/cuda:13.5.0-runtime-ubuntu22.04
 
 WORKDIR /app
 
