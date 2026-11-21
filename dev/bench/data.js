@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795156239966,
+  "lastUpdate": 1795242127125,
   "repoUrl": "https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform",
   "entries": {
     "Benchmark": [
@@ -5418,6 +5418,49 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 2.3447704459818453e-7",
             "extra": "mean: 1.1501232330594862 usec\nrounds: 32118"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Corey Leath",
+            "username": "CoreyLeath-code",
+            "email": "corey22blue@hotmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "58af43f1edc9b71dfaa9e88e5f52defbaf306db3",
+          "message": "Merge pull request #26 from CoreyLeath-code/dependabot/docker/python-3.15-slim\n\nchore(deps): bump python from 3.11-slim to 3.15-slim",
+          "timestamp": "2026-11-18T02:40:10Z",
+          "url": "https://github.com/CoreyLeath-code/AutoGuard-AI-Real-Time-Autonomous-Vehicle-Safety-Geofencing-Platform/commit/58af43f1edc9b71dfaa9e88e5f52defbaf306db3"
+        },
+        "date": 1795242126881,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_haversine_distance_benchmark",
+            "value": 1149651.8212417024,
+            "unit": "iter/sec",
+            "range": "stddev: 4.260911715601253e-7",
+            "extra": "mean: 869.8285702882911 nsec\nrounds: 101021"
+          },
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_geofence_membership_benchmark",
+            "value": 1329141.047794607,
+            "unit": "iter/sec",
+            "range": "stddev: 1.1731150403159353e-7",
+            "extra": "mean: 752.365598563849 nsec\nrounds: 178572"
+          },
+          {
+            "name": "tests/benchmarks/test_geofence_benchmark.py::test_prediction_response_serialization_benchmark",
+            "value": 461254.6047052139,
+            "unit": "iter/sec",
+            "range": "stddev: 4.794255349854414e-7",
+            "extra": "mean: 2.1680000368540413 usec\nrounds: 27146"
           }
         ]
       }
