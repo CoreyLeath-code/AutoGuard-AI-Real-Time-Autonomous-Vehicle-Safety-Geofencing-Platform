@@ -42,7 +42,7 @@ jobs:
         run: cat repository-inventory.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload inventory artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: repository-inventory-${{ github.sha }}
           path: repository-inventory.md
